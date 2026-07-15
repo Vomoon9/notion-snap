@@ -1,0 +1,53 @@
+# NotionSnap — GitHub Action 示例
+# 将此文件放到你的备份仓库的 .github/workflows/notion-backup.yml
+# 注意：这个 Action 需要在你 fork 的 notion-snap 仓库中配置，
+# 或者用 npm 安装 notion-snap
+
+name: "Notion Backup"
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    # 每天凌晨 2 点自动备份 (UTC 时间，按需调整)
+    - cron: "0 2 * * *"
+  # 允许手动触发
+  workflow_dispatch:
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    name: Backup Notion
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install NotionSnap
+        run: npm install -g notion-snap
+        # 或者从源码安装:
+        # run: |
+        #   git clone https://github.com/你的用户名/notion-snap.git
+        #   cd notion-snap && npm install && npm run build && npm link
+
+      - name: Run backup
+        run: notion-snap backup --root ${{ secrets.NOTION_ROOT_PAGE_ID }} --output ./backup-data
+        env:
+          # OAuth 凭证 (从 notion-snap init 获取后保存到 GitHub Secrets)
+          # 注意：GitHub Actions 模式需要特殊处理 OAuth
+          # 建议：在本地运行 notion-snap init 获取 token，然后保存到 Secrets
+          NOTION_OAUTH_CLIENT_ID: ${{ secrets.NOTION_OAUTH_CLIENT_ID }}
+          NOTION_OAUTH_CLIENT_SECRET: ${{ secrets.NOTION_OAUTH_CLIENT_SECRET }}
+
+      - name: Commit changes
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add ./backup-data
+          git commit -m "Automated backup: $(date -u '+%Y-%m-%d %H:%M')" || echo "No changes to commit"
+          git push

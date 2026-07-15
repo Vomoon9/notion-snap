@@ -1,0 +1,24 @@
+# NotionSnap 配置文件示例
+# 复制为 notion-snap.yaml 并修改
+
+source:
+  # 根页面 ID — 要备份的 Notion 页面/空间的根
+  # 在 Notion 页面 URL 中找到：notion.so/页面标题-XXXXXXXXXXXXXXXXXXXXXXXX
+  # 取最后 32 位 UUID
+  rootPageId: "your-root-page-id-here"
+
+storage:
+  # 存储类型：local 或 git
+  type: local
+
+  # local 模式：输出目录
+  outputDir: ./backups
+
+  # git 模式（取消注释使用）
+  # type: git
+  # repo: git@github.com:yourusername/notion-backup-data.git
+  # branch: main
+
+export:
+  # 时区（影响时间戳显示）
+  timezone: Asia/Shanghai
